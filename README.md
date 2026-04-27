@@ -6,6 +6,24 @@ A lightweight, interpretable detection pipeline that combines an Isolation Fores
 
 ---
 
+## Quick Start
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the demo
+python demo.py
+```
+
+The demo will:
+- Generate synthetic transaction data with embedded AML typologies
+- Apply machine learning anomaly detection and rule-based alerts
+- Display key metrics and top flagged transactions
+- Export results to CSV and visualization files
+
+---
+
 ## System Architecture
 
 ```
@@ -51,6 +69,12 @@ Prioritized SAR Review Queue
 | **Combined (ML + Rules)** | **81.3%** | **100%** | **89.7%** |
 
 The combined system achieves perfect recall (zero missed suspicious transactions) with manageable false-positive volume — a defensible production trade-off under SR 11-7 guidance, where missed SARs carry far higher regulatory cost than investigative overhead.
+
+## Output Files
+
+- **`flagged_transactions.csv`**: High and Critical risk transactions prioritized for SAR review
+- **`aml_visuals.png`**: Charts showing risk distributions, detection overlap, and transaction patterns
+- **`aml_analysis.py`**: Main analysis pipeline (can be run standalone)
 
 ---
 
