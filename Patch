@@ -1,0 +1,137 @@
+diff --git a/pyproject.toml b/pyproject.toml
+new file mode 100644
+index 0000000000000000000000000000000000000000..63059812fc410d78f29e88e99e9ca2df5a6d37a9
+--- /dev/null
++++ b/pyproject.toml
+@@ -0,0 +1,19 @@
++[build-system]
++requires = ["setuptools>=68", "wheel"]
++build-backend = "setuptools.build_meta"
++
++[project]
++name = "aml-risk"
++version = "0.1.0"
++description = "AML/BSA research helpers"
++readme = "README.md"
++requires-python = ">=3.10"
++
++[project.scripts]
++aml-risk = "aml_risk.cli:main"
++
++[tool.setuptools]
++package-dir = {"" = "src"}
++
++[tool.setuptools.packages.find]
++where = ["src"]
+diff --git a/src/aml_risk/__init__.py b/src/aml_risk/__init__.py
+index d7eed056362cb90c42940ddab0c5770c625dae15..1f8d91aa1813f6c5a2bfbb1659103f10770db4db 100644
+--- a/src/aml_risk/__init__.py
++++ b/src/aml_risk/__init__.py
+@@ -1,4 +1,5 @@
+-__all__ = ["version", "pipeline", "cli"]
+-from . import version
+-from . import pipeline
+-from . import cli
++"""AML/BSA risk utilities package."""
++
++from .version import __version__
++
++__all__ = ["__version__"]
+diff --git a/src/aml_risk/cli.py b/src/aml_risk/cli.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..214babd752a42f001a0e59ea9eeae426895e1334
+--- /dev/null
++++ b/src/aml_risk/cli.py
+@@ -0,0 +1,37 @@
++"""Command-line interface for aml_risk."""
++
++from __future__ import annotations
++
++import argparse
++
++from .pipeline import Transaction, score_transaction
++from .version import __version__
++
++
++def _build_parser() -> argparse.ArgumentParser:
++    parser = argparse.ArgumentParser(prog="aml-risk", description="AML/BSA risk helper")
++    parser.add_argument("--version", action="store_true", help="Print version and exit")
++    parser.add_argument("--amount", type=float, default=0.0, help="Transaction amount in USD")
++    parser.add_argument("--cross-border", action="store_true", help="Mark transaction as cross-border")
++    parser.add_argument("--high-risk-jurisdiction", action="store_true", help="Mark transaction as high-risk jurisdiction")
++    return parser
++
++
++def main() -> None:
++    parser = _build_parser()
++    args = parser.parse_args()
++
++    if args.version:
++        print(__version__)
++        return
++
++    txn = Transaction(
++        amount_usd=args.amount,
++        cross_border=args.cross_border,
++        high_risk_jurisdiction=args.high_risk_jurisdiction,
++    )
++    print(f"risk_score={score_transaction(txn):.1f}")
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/src/aml_risk/pipeline.py b/src/aml_risk/pipeline.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..b5d90b31aa3b2ef5059e7d55d9e7bf80b14b9591
+--- /dev/null
++++ b/src/aml_risk/pipeline.py
+@@ -0,0 +1,40 @@
++"""Simple AML/BSA research pipeline helpers."""
++
++from __future__ import annotations
++
++from dataclasses import dataclass
++from typing import Iterable
++
++
++@dataclass(frozen=True)
++class Transaction:
++    """Basic transaction record used for a simple risk score."""
++
++    amount_usd: float
++    cross_border: bool = False
++    high_risk_jurisdiction: bool = False
++
++
++def score_transaction(txn: Transaction) -> float:
++    """Return a lightweight heuristic risk score from 0-100."""
++
++    score = 5.0
++
++    if txn.amount_usd >= 10000:
++        score += 25
++    elif txn.amount_usd >= 3000:
++        score += 10
++
++    if txn.cross_border:
++        score += 20
++
++    if txn.high_risk_jurisdiction:
++        score += 35
++
++    return min(score, 100.0)
++
++
++def score_batch(transactions: Iterable[Transaction]) -> list[float]:
++    """Score each transaction in a batch."""
++
++    return [score_transaction(txn) for txn in transactions]
+diff --git a/src/aml_risk/version.py b/src/aml_risk/version.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..1b687634aad640fb701b4130abf48e6f2c9520e1
+--- /dev/null
++++ b/src/aml_risk/version.py
+@@ -0,0 +1,3 @@
++"""Package version metadata."""
++
++__version__ = "0.1.0"
